@@ -1,0 +1,28 @@
+{
+  "name": "opencode-plus",
+  "version": "1.0.0",
+  "description": "OpenCodePlus - Prompt Manager plugin for OpenCode Desktop",
+  "main": "lib/patch.js",
+  "bin": {
+    "opencode-plus": "./bin/cli.js"
+  },
+  "scripts": {
+    "install": "node bin/install.js",
+    "uninstall": "node bin/uninstall.js",
+    "postinstall": "node bin/postinstall.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "assets/"
+  ],
+  "keywords": ["opencode", "opencodeplus", "prompt", "manager", "plugin", "electron"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@electron/asar": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
