@@ -126,6 +126,7 @@
     d.innerHTML=[
       '<button data-action="copy">Copy</button>',
       '<button data-action="edit">Edit</button>',
+      '<button data-action="reveal">Reveal in Finder</button>',
       '<button data-action="delete" class="pm-dl">Delete</button>'
     ].join('');
     var r=anchor.getBoundingClientRect();
@@ -173,6 +174,8 @@
         var r=await a.remove(fp);
         if(r)render();
       }
+    }else if(action==='reveal'){
+      try{await a.openInExplorer(fp);}catch(e3){}
     }
   }
 
