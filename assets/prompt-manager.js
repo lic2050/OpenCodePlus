@@ -16,45 +16,19 @@
   (function(){
     function reportCwd(dir){
       if(!dir||typeof dir!=='string')return;
+      try{dir=decodeURIComponent(dir);}catch(e){}
       window.__pmCwd=dir;
       var a=getApi();
       if(a)a.updateCwd(dir);
     }
-    function extractDirFromHeaders(h){
-      if(!h)return;
-      var raw;
-      if(typeof h.get==='function'){
-        raw=h.get('x-opencode-directory');
-      }else if(typeof h==='object'){
-        raw=h['x-opencode-directory'];
+    var origDelete=Headers.prototype.delete;
+    Headers.prototype.delete=function(name){
+      if(name==='x-opencode-directory'){
+        var v=typeof this.get==='function'?this.get('x-opencode-directory'):null;
+        if(v)reportCwd(v);
       }
-      if(!raw||typeof raw!=='string')return;
-      try{return decodeURIComponent(raw);}catch(e){return raw;}
-    }
-    var origFetch = window.fetch;
-    if(origFetch){
-      window.fetch = function(){
-        if(arguments[1]&&arguments[1].headers){
-          var dir=extractDirFromHeaders(arguments[1].headers);
-          if(dir)reportCwd(dir);
-        }
-        return origFetch.apply(this,arguments);
-      };
-    }
-    async function fetchCwdFromProjectApi(){
-      try{
-        var u=window.api&&window.api.getDefaultServerUrl;
-        if(!u)return;
-        var base=await u();
-        if(!base)return;
-        var r=await fetch(base+'/project/current',{credentials:'include'});
-        if(!r.ok)return;
-        var d=await r.json();
-        var dir=d&&(d.directory||d.path||d.cwd);
-        if(dir)reportCwd(dir);
-      }catch(e){}
-    }
-    fetchCwdFromProjectApi();
+      return origDelete.apply(this,arguments);
+    };
   })();
 
   var CSS = [
