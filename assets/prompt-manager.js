@@ -13,23 +13,27 @@
     return window.promptManagerAPI || window.__promptManagerAPI;
   }
 
-  (function(){
+  try{(function(){
     function reportCwd(dir){
       if(!dir||typeof dir!=='string')return;
       try{dir=decodeURIComponent(dir);}catch(e){}
       window.__pmCwd=dir;
       var a=getApi();
-      if(a)a.updateCwd(dir);
+      if(a&&typeof a.updateCwd==='function')a.updateCwd(dir);
     }
     var origDelete=Headers.prototype.delete;
-    Headers.prototype.delete=function(name){
-      if(name==='x-opencode-directory'){
-        var v=typeof this.get==='function'?this.get('x-opencode-directory'):null;
-        if(v)reportCwd(v);
-      }
-      return origDelete.apply(this,arguments);
-    };
-  })();
+    if(typeof origDelete==='function'){
+      Headers.prototype.delete=function(name){
+        try{
+          if(name==='x-opencode-directory'){
+            var v=typeof this.get==='function'?this.get('x-opencode-directory'):null;
+            if(v)reportCwd(v);
+          }
+        }catch(e){console.error('[PM] reportCwd error:',e);}
+        return origDelete.apply(this,arguments);
+      };
+    }
+  })();}catch(e){console.error('[PM] Headers patch failed:',e);}
 
   var CSS = [
     '#pm-panel,#pm-dropdown,#pm-sync-popup{--pm-bg:var(--v2-background-bg-layer-02,#fff);--pm-bg-inset:var(--v2-background-bg-layer-01,var(--v2-background-bg-base,#fafafa));--pm-bg-raised:var(--v2-background-bg-layer-03,#eee);--pm-text:var(--v2-text-text-base,#161616);--pm-text-muted:var(--v2-text-text-muted,#5c5c5c);--pm-text-faint:var(--v2-text-text-faint,gray);--pm-border:var(--v2-border-border-base,rgba(0,0,0,.1));--pm-border-weak:var(--v2-border-border-muted,rgba(0,0,0,.06));--pm-border-strong:var(--v2-border-border-strong,rgba(0,0,0,.2));--pm-hover:var(--v2-overlay-simple-overlay-hover,rgba(0,0,0,.04));--pm-pressed:var(--v2-overlay-simple-overlay-pressed,rgba(0,0,0,.08));--pm-accent:#4f8ff7;--pm-accent-hover:#3b7de6;--pm-focus:var(--v2-border-border-focus,#4f8ff7);--pm-success:var(--v2-state-fg-success,#2dba26);--pm-shadow:0 8px 32px rgba(0,0,0,.2)}',
