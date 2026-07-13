@@ -7,6 +7,7 @@
   var STORAGE_KEY = 'pm-panel-size';
   var MIN_W = 400;
   var MIN_H = 300;
+  var _activeTab = 'global';
 
   function getApi() {
     return window.promptManagerAPI || window.__promptManagerAPI;
@@ -42,10 +43,6 @@
     '#'+DROPDOWN_ID+' button{display:block;width:100%;padding:8px 12px;background:none;border:none;color:var(--pm-text);font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}',
     '#'+DROPDOWN_ID+' button:hover{background:var(--pm-hover)}',
     '#'+DROPDOWN_ID+' .pm-dl{color:#f87171}',
-    '#'+PANEL_ID+' .pm-ft{padding:10px 16px;border-top:1px solid var(--pm-border-weak);display:flex;gap:8px}',
-    '#'+PANEL_ID+' .pm-ft button{flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}',
-    '#'+PANEL_ID+' .pm-add{background:var(--pm-accent);color:#fff}',
-    '#'+PANEL_ID+' .pm-add:hover{background:var(--pm-accent-hover)}',
     '#'+PANEL_ID+' .pm-empty{text-align:center;padding:32px 16px;color:var(--pm-text-muted);font-size:13px}',
     '#'+PANEL_ID+' .pm-form{padding:12px 16px;display:none;flex-direction:column;gap:8px}',
     '#'+PANEL_ID+' .pm-form.open{display:flex}',
@@ -62,6 +59,18 @@
     '#'+PANEL_ID+' .pm-bk{position:fixed;inset:0;z-index:-1}',
     '#'+PANEL_ID+' .pm-resize{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;z-index:10}',
     '#'+PANEL_ID+' .pm-resize::after{content:"";position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-right:2px solid var(--pm-border-strong);border-bottom:2px solid var(--pm-border-strong)}',
+    '#'+PANEL_ID+' .pm-add-hd{background:var(--pm-accent);color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:12px;font-weight:500;cursor:pointer;line-height:18px}',
+    '#'+PANEL_ID+' .pm-add-hd:hover{background:var(--pm-accent-hover)}',
+    '#'+PANEL_ID+' .pm-tabs{display:flex;border-bottom:1px solid var(--pm-border-weak);padding:0 16px;gap:0}',
+    '#'+PANEL_ID+' .pm-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:500;color:var(--pm-text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}',
+    '#'+PANEL_ID+' .pm-tab:hover{color:var(--pm-text)}',
+    '#'+PANEL_ID+' .pm-tab.active{color:var(--pm-accent);border-bottom-color:var(--pm-accent)}',
+    '#'+PANEL_ID+' .pm-add-hd{background:var(--pm-accent);color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:12px;font-weight:500;cursor:pointer;line-height:18px}',
+    '#'+PANEL_ID+' .pm-add-hd:hover{background:var(--pm-accent-hover)}',
+    '#'+PANEL_ID+' .pm-tabs{display:flex;border-bottom:1px solid var(--pm-border-weak);padding:0 16px;gap:0}',
+    '#'+PANEL_ID+' .pm-tab{flex:1;padding:8px 0;text-align:center;font-size:12px;font-weight:500;color:var(--pm-text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}',
+    '#'+PANEL_ID+' .pm-tab:hover{color:var(--pm-text)}',
+    '#'+PANEL_ID+' .pm-tab.active{color:var(--pm-accent);border-bottom-color:var(--pm-accent)}',
     '#'+SYNC_POPUP_ID+'{position:fixed;z-index:999999;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;max-height:80vh;background:var(--pm-bg);border:1px solid var(--pm-border);border-radius:12px;box-shadow:var(--pm-shadow);display:none;flex-direction:column;overflow:hidden;font-family:var(--font-family-sans,Inter,sans-serif);color:var(--pm-text)}',
     '#'+SYNC_POPUP_ID+'.open{display:flex}',
     '#'+SYNC_POPUP_ID+' .pm-sp-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--pm-border-weak)}',
@@ -375,7 +384,8 @@
     p.id=PANEL_ID;
     p.innerHTML=[
       '<div class="pm-bk" data-close></div>',
-      '<div class="pm-hd"><h3>Prompt Manager</h3><div style="display:flex;gap:4px"><button class="pm-sync-open" title="Sync" style="background:none;border:none;color:inherit;cursor:pointer;padding:2px 6px;border-radius:4px;font-size:14px">&#x21c5;</button><button class="pm-x" data-close>&times;</button></div></div>',
+      '<div class="pm-hd"><h3>Prompt Manager</h3><div style="display:flex;gap:4px;align-items:center"><button class="pm-add-hd" data-action="add-hd" title="Add Prompt">+ Add</button><button class="pm-sync-open" title="Sync" style="background:none;border:none;color:inherit;cursor:pointer;padding:2px 6px;border-radius:4px;font-size:14px">&#x21c5;</button><button class="pm-x" data-close>&times;</button></div></div>',
+      '<div class="pm-tabs"><button class="pm-tab active" data-tab="global">Global</button><button class="pm-tab" data-tab="project">Project</button></div>',
       '<div class="pm-bd"></div>',
       '<div class="pm-form" id="pm-add-form">',
       '<div class="pm-ft-title">Add Prompt</div>',
@@ -394,7 +404,6 @@
       '<input type="hidden" data-f="e-file"/>',
       '<div class="fa"><button class="cn" data-form="ecancel">Cancel</button><button class="sv" data-form="esave">Save</button></div>',
       '</div>',
-      '<div class="pm-ft"><button class="pm-add">+ Add Prompt</button></div>',
       '<div class="pm-resize" data-resize></div>'
     ].join('');
     document.body.appendChild(p);
@@ -432,9 +441,18 @@
 
         hideDropdown();
 
-        if (e.target.closest('.pm-add')) {
+        if (e.target.closest('[data-action="add-hd"]')) {
           p.querySelector('#pm-add-form').classList.add('open');
+          p.querySelector('[data-f="scope"]').value = _activeTab;
           p.querySelector('[data-f="name"]').focus();
+          return;
+        }
+
+        var tab=e.target.closest('.pm-tab');
+        if(tab){
+          _activeTab=tab.getAttribute('data-tab');
+          p.querySelectorAll('.pm-tab').forEach(function(t){t.classList.toggle('active',t.getAttribute('data-tab')===_activeTab)});
+          render();
           return;
         }
 
@@ -545,7 +563,7 @@
     p.querySelector('[data-f="name"]').value = '';
     p.querySelector('[data-f="desc"]').value = '';
     p.querySelector('[data-f="body"]').value = '';
-    p.querySelector('[data-f="scope"]').value = 'project';
+    p.querySelector('[data-f="scope"]').value = _activeTab;
   }
 
   function clearEditForm(){
@@ -567,16 +585,12 @@
       if (!a) return;
 
       var prompts = await a.listPrompts();
-      var g = prompts.filter(function(x){return x.scope==='global'});
-      var pr = prompts.filter(function(x){return x.scope!=='global'});
+      var items = prompts.filter(function(x){return _activeTab==='global'? x.scope==='global' : x.scope!=='global'});
 
       var h = '';
-      function sec(title, items) {
-        h += '<div class="pm-st">' + title + '</div>';
-        if (!items.length) {
-          h += '<div class="pm-empty">No ' + title.toLowerCase() + ' prompts</div>';
-          return;
-        }
+      if (!items.length) {
+        h += '<div class="pm-empty">No ' + _activeTab + ' prompts</div>';
+      } else {
         for (var i = 0; i < items.length; i++) {
           var it = items[i];
           h += '<div class="pm-it">';
@@ -589,8 +603,6 @@
           h += '</div>';
         }
       }
-      sec('Global', g);
-      sec('Project', pr);
       bd.innerHTML = h;
     } catch(err) {
       console.error('[PM] render error:', err);
