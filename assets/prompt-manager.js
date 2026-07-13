@@ -300,14 +300,19 @@
     });
 
     el.querySelector('#pm-sync-push-btn').addEventListener('click',async function(){
+      console.log('[PM] Push button clicked');
       var a=getApi();
+      console.log('[PM] API available:', !!a, 'syncPush type:', typeof (a&&a.syncPush));
       if(!a){alert('API not available');return;}
       this.disabled=true;
       this.textContent='Pushing...';
       try{
+        console.log('[PM] Calling syncPush...');
         var r=await a.syncPush();
+        console.log('[PM] syncPush result:', JSON.stringify(r));
+        if(r&&r.debug)console.log('[PM] push debug:',r.debug);
         if(r&&!r.ok)alert('Push failed: '+(r.error||'unknown error'));
-      }catch(err){alert('Push failed: '+err.message);}
+      }catch(err){console.error('[PM] syncPush error:',err);alert('Push failed: '+err.message);}
       this.textContent='Push';
       this.disabled=false;
       refreshSyncPopupStatus();
