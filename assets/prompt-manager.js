@@ -1,7 +1,9 @@
 (function() {
+  try {
   var PANEL_ID = 'pm-panel';
   var BTN_ID = 'pm-btn';
   var DROPDOWN_ID = 'pm-dropdown';
+  var SYNC_POPUP_ID = 'pm-sync-popup';
   var STORAGE_KEY = 'pm-panel-size';
   var MIN_W = 400;
   var MIN_H = 300;
@@ -57,7 +59,38 @@
     '#'+PANEL_ID+' .pm-form .pm-ft-title{font-size:12px;font-weight:600;color:var(--color-text-weak,#888);margin-bottom:4px}',
     '#'+PANEL_ID+' .pm-bk{position:fixed;inset:0;z-index:-1}',
     '#'+PANEL_ID+' .pm-resize{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;z-index:10}',
-    '#'+PANEL_ID+' .pm-resize::after{content:"";position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-right:2px solid rgba(255,255,255,.25);border-bottom:2px solid rgba(255,255,255,.25)}'
+    '#'+PANEL_ID+' .pm-resize::after{content:"";position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-right:2px solid rgba(255,255,255,.25);border-bottom:2px solid rgba(255,255,255,.25)}',
+    '#'+SYNC_POPUP_ID+'{position:fixed;z-index:999999;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;max-height:80vh;background:var(--color-surface-raised,#1e1e2e);border:1px solid var(--color-border,rgba(255,255,255,.1));border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;flex-direction:column;overflow:hidden;font-family:var(--font-family-sans,Inter,sans-serif);color:var(--color-text-base,#e0e0e0)}',
+    '#'+SYNC_POPUP_ID+'.open{display:flex}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--color-border,rgba(255,255,255,.08))}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-hd h4{margin:0;font-size:14px;font-weight:600}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-hd button{background:none;border:none;color:inherit;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-hd button:hover{background:rgba(255,255,255,.08)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-bd{padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}',
+    '#'+SYNC_POPUP_ID+' label{font-size:11px;font-weight:600;color:var(--color-text-weak,#888);text-transform:uppercase;letter-spacing:.5px}',
+    '#'+SYNC_POPUP_ID+' input[type=text]{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--color-border,rgba(255,255,255,.12));background:var(--color-surface,rgba(255,255,255,.04));color:var(--color-text-base,#e0e0e0);font-size:13px;box-sizing:border-box}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-row{display:flex;gap:8px;align-items:center}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-row button{padding:6px 12px;border-radius:6px;border:none;font-size:12px;cursor:pointer;background:#4f8ff7;color:#fff}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-row button:hover{background:#3b7de6}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-row button:disabled{opacity:.4;cursor:default}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-hint{font-size:11px;color:var(--color-text-weak,#666)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-status{font-size:12px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,.04)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-status.synced{color:#4ade80}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-status.error{color:#f87171}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-actions{display:flex;gap:8px}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-actions button{flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:rgba(255,255,255,.08);color:var(--color-text-base,#e0e0e0)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-actions button:hover{background:rgba(255,255,255,.15)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-actions button:disabled{opacity:.4;cursor:default}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict{display:none;flex-direction:column;gap:10px;padding:12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--color-border,rgba(255,255,255,.08))}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict.open{display:flex}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict h4{margin:0;font-size:13px}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict p{margin:0;font-size:12px;color:var(--color-text-weak,#888)}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict .pm-sp-conflict-btns{display:flex;gap:8px}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict .pm-sp-conflict-btns button{flex:1;padding:10px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict .pm-use-cloud{background:#4f8ff7;color:#fff}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-conflict .pm-use-local{background:rgba(255,255,255,.08);color:var(--color-text-base,#e0e0e0)}',
+    '#pm-sync-overlay{position:fixed;inset:0;z-index:999998;background:rgba(0,0,0,.4);display:none}',
+    '#pm-sync-overlay.open{display:block}'
   ].join('\n');
 
   function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -139,13 +172,195 @@
     }
   }
 
+  // ── Sync Popup ──
+  var _syncPollTimer = null;
+  var _autoSyncDebounce = null;
+
+  function openSyncPopup(){
+    var popup=document.getElementById(SYNC_POPUP_ID);
+    var overlay=document.getElementById('pm-sync-overlay');
+    if(!popup){
+      popup=createSyncPopup();
+      overlay=document.createElement('div');
+      overlay.id='pm-sync-overlay';
+      overlay.addEventListener('click',closeSyncPopup);
+      document.body.appendChild(overlay);
+    }
+    overlay.classList.add('open');
+    popup.classList.add('open');
+    refreshSyncPopupStatus();
+    startSyncPoll();
+  }
+
+  function closeSyncPopup(){
+    var popup=document.getElementById(SYNC_POPUP_ID);
+    var overlay=document.getElementById('pm-sync-overlay');
+    if(popup)popup.classList.remove('open');
+    if(overlay)overlay.classList.remove('open');
+  }
+
+  function createSyncPopup(){
+    var el=document.createElement('div');
+    el.id=SYNC_POPUP_ID;
+    el.innerHTML=[
+      '<div class="pm-sp-hd"><h4>Sync Settings</h4><button data-close-sync>&times;</button></div>',
+      '<div class="pm-sp-bd">',
+      '<div>',
+      '<label>Git Repository URL</label>',
+      '<div class="pm-sp-row"><input type="text" id="pm-sync-url" placeholder="git@github.com:user/prompts.git"/><button id="pm-sync-save-btn">Save</button></div>',
+      '<div class="pm-sp-hint">Private repo recommended. SSH or HTTPS supported.</div>',
+      '</div>',
+      '<div class="pm-sp-status" id="pm-sync-status-text">Sync: not configured</div>',
+      '<div class="pm-sp-actions">',
+      '<button id="pm-sync-push-btn" disabled>Push</button>',
+      '<button id="pm-sync-pull-btn" disabled>Pull</button>',
+      '</div>',
+      '<div class="pm-sp-conflict" id="pm-sync-conflict">',
+      '<h4>Conflict Detected</h4>',
+      '<p>Remote repository has data. Choose how to resolve:</p>',
+      '<div class="pm-sp-conflict-btns"><button class="pm-use-cloud" data-sync-strategy="cloud">Use Cloud Data</button><button class="pm-use-local" data-sync-strategy="local">Use Local Data</button></div>',
+      '</div>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(el);
+
+    el.querySelector('[data-close-sync]').addEventListener('click',closeSyncPopup);
+
+    el.querySelector('#pm-sync-save-btn').addEventListener('click',async function(){
+      var url=el.querySelector('#pm-sync-url').value.trim();
+      if(!url){alert('Please enter a Git repository URL');return;}
+      var btn=this;
+      btn.textContent='Connecting...';
+      btn.disabled=true;
+      try{
+        var a=getApi();
+        await a.setSyncConfig({remote:url});
+        var result=await a.syncInit(url);
+        if(result&&!result.ok&&result.error){
+          alert('Sync init failed: '+result.error);
+        }else if(result&&result.needsConflict){
+          el.querySelector('#pm-sync-conflict').classList.add('open');
+        }else{
+          refreshSyncPopupStatus();
+        }
+      }catch(err){
+        alert('Sync init failed: '+err.message);
+      }
+      btn.textContent='Save';
+      btn.disabled=false;
+    });
+
+    el.querySelectorAll('[data-sync-strategy]').forEach(function(btn){
+      btn.addEventListener('click',async function(){
+        var strategy=this.getAttribute('data-sync-strategy');
+        var a=getApi();
+        el.querySelector('#pm-sync-conflict').classList.remove('open');
+        await a.syncResolve(strategy);
+        refreshSyncPopupStatus();
+      });
+    });
+
+    el.querySelector('#pm-sync-push-btn').addEventListener('click',async function(){
+      var a=getApi();
+      if(!a){alert('API not available');return;}
+      this.disabled=true;
+      this.textContent='Pushing...';
+      try{
+        var r=await a.syncPush();
+        if(r&&!r.ok)alert('Push failed');
+      }catch(err){alert('Push failed: '+err.message);}
+      this.textContent='Push';
+      this.disabled=false;
+      refreshSyncPopupStatus();
+    });
+
+    el.querySelector('#pm-sync-pull-btn').addEventListener('click',async function(){
+      var a=getApi();
+      if(!a){alert('API not available');return;}
+      this.disabled=true;
+      this.textContent='Pulling...';
+      try{
+        var r=await a.syncPull();
+        if(r&&!r.ok)alert('Pull failed');
+      }catch(err){alert('Pull failed: '+err.message);}
+      this.textContent='Pull';
+      this.disabled=false;
+      refreshSyncPopupStatus();
+    });
+
+    return el;
+  }
+
+  async function refreshSyncPopupStatus(){
+    var el=document.getElementById(SYNC_POPUP_ID);
+    if(!el||!el.classList.contains('open'))return;
+    var a=getApi();
+    if(!a)return;
+    try{
+      var st=await a.syncStatus();
+      var statusEl=el.querySelector('#pm-sync-status-text');
+      var pushBtn=el.querySelector('#pm-sync-push-btn');
+      var pullBtn=el.querySelector('#pm-sync-pull-btn');
+      if(!st.configured){
+        statusEl.textContent='Sync: not configured';
+        statusEl.className='pm-sp-status';
+        pushBtn.disabled=true;
+        pullBtn.disabled=true;
+      }else if(!st.initialized){
+        statusEl.textContent='Sync: needs setup';
+        statusEl.className='pm-sp-status';
+        pushBtn.disabled=true;
+        pullBtn.disabled=true;
+      }else{
+        var parts=[];
+        if(st.ahead>0)parts.push(st.ahead+' ahead');
+        if(st.behind>0)parts.push(st.behind+' behind');
+        if(parts.length){
+          statusEl.textContent='Sync: '+parts.join(', ');
+          statusEl.className='pm-sp-status error';
+        }else{
+          statusEl.textContent='Synced'+(st.lastSync?' ('+new Date(st.lastSync).toLocaleString()+')':'');
+          statusEl.className='pm-sp-status synced';
+        }
+        pushBtn.disabled=false;
+        pullBtn.disabled=false;
+        var urlInput=el.querySelector('#pm-sync-url');
+        if(urlInput&&!urlInput.value)urlInput.value=st.remote||'';
+      }
+    }catch(e){
+      console.error('[PM] refreshSyncPopupStatus error:',e);
+    }
+  }
+
+  function startSyncPoll(){
+    if(_syncPollTimer)return;
+    _syncPollTimer=setInterval(function(){
+      var el=document.getElementById(SYNC_POPUP_ID);
+      if(el&&el.classList.contains('open'))refreshSyncPopupStatus();
+    },30000);
+  }
+
+  function triggerAutoSync(){
+    if(_autoSyncDebounce)clearTimeout(_autoSyncDebounce);
+    _autoSyncDebounce=setTimeout(async function(){
+      var a=getApi();
+      if(!a)return;
+      try{
+        var st=await a.syncStatus();
+        if(st.configured&&st.initialized){
+          await a.syncPush();
+        }
+      }catch(e){}
+    },2000);
+  }
+
   function createPanel(){
     if(document.getElementById(PANEL_ID))return;
     var p=document.createElement('div');
     p.id=PANEL_ID;
     p.innerHTML=[
       '<div class="pm-bk" data-close></div>',
-      '<div class="pm-hd"><h3>Prompt Manager</h3><button class="pm-x" data-close>&times;</button></div>',
+      '<div class="pm-hd"><h3>Prompt Manager</h3><div style="display:flex;gap:4px"><button class="pm-sync-open" title="Sync" style="background:none;border:none;color:inherit;cursor:pointer;padding:2px 6px;border-radius:4px;font-size:14px">&#x21c5;</button><button class="pm-x" data-close>&times;</button></div></div>',
       '<div class="pm-bd"></div>',
       '<div class="pm-form" id="pm-add-form">',
       '<div class="pm-ft-title">Add Prompt</div>',
@@ -169,6 +384,8 @@
     ].join('');
     document.body.appendChild(p);
 
+    p.querySelector('.pm-sync-open').addEventListener('click',openSyncPopup);
+
     p.addEventListener('click', async function(e) {
       try {
         if (e.target.closest('[data-close]')) {
@@ -178,7 +395,7 @@
         }
 
         var a = getApi();
-        if (!a) { alert('API not available'); return; }
+        if (!a) return;
 
         var tg = e.target.closest('.pm-tg');
         if (tg) {
@@ -195,57 +412,6 @@
           var fp = wrap.getAttribute('data-file');
           var nm = wrap.getAttribute('data-name');
           showDropdown(menuBtn, fp, nm);
-          return;
-        }
-
-        var dd = e.target.closest('#'+DROPDOWN_ID);
-        if (dd) {
-          var copyBtn = e.target.closest('[data-action="copy"]');
-          if (copyBtn) {
-            var fp = copyBtn.getAttribute('data-file');
-            var prompts = await a.listPrompts();
-            var src = prompts.find(function(x){return x.file===fp});
-            if (src) {
-              hideDropdown();
-              p.querySelector('#pm-add-form').classList.add('open');
-              p.querySelector('[data-f="name"]').value = src.name + '_copy';
-              p.querySelector('[data-f="scope"]').value = src.scope;
-              p.querySelector('[data-f="desc"]').value = src.description;
-              p.querySelector('[data-f="body"]').value = src.body;
-              p.querySelector('[data-f="name"]').focus();
-            }
-            return;
-          }
-
-          var editBtn = e.target.closest('[data-action="edit"]');
-          if (editBtn) {
-            var fp = editBtn.getAttribute('data-file');
-            var prompts = await a.listPrompts();
-            var src = prompts.find(function(x){return x.file===fp});
-            if (src) {
-              hideDropdown();
-              p.querySelector('#pm-edit-form').classList.add('open');
-              p.querySelector('[data-f="e-name"]').value = src.name;
-              p.querySelector('[data-f="e-scope"]').value = src.scope;
-              p.querySelector('[data-f="e-desc"]').value = src.description;
-              p.querySelector('[data-f="e-body"]').value = src.body;
-              p.querySelector('[data-f="e-file"]').value = src.file;
-              p.querySelector('[data-f="e-name"]').focus();
-            }
-            return;
-          }
-
-          var delBtn = e.target.closest('[data-action="delete"]');
-          if (delBtn) {
-            var fp = delBtn.getAttribute('data-file');
-            var nm = delBtn.getAttribute('data-name');
-            hideDropdown();
-            if (confirm('Delete prompt "' + nm + '"?')) {
-              var r = await a.remove(fp);
-              if (r) render();
-            }
-            return;
-          }
           return;
         }
 
@@ -275,6 +441,7 @@
             p.querySelector('#pm-add-form').classList.remove('open');
             clearAddForm();
             render();
+            triggerAutoSync();
           } else {
             alert('Failed to save prompt');
           }
@@ -301,13 +468,13 @@
             p.querySelector('#pm-edit-form').classList.remove('open');
             clearEditForm();
             render();
+            triggerAutoSync();
           } else {
             alert('Failed to save prompt');
           }
         }
       } catch(err) {
         console.error('[PM] error:', err);
-        alert('[PM] Error: ' + err.message);
       }
     });
 
@@ -483,4 +650,5 @@
   } else {
     init();
   }
+  } catch(e) { console.error('[PM] prompt-manager.js error:', e); }
 })();
