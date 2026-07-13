@@ -80,6 +80,7 @@
     '#'+SYNC_POPUP_ID+' .pm-sp-status{font-size:12px;padding:8px 12px;border-radius:6px;background:var(--pm-bg-inset);color:var(--pm-text-muted)}',
     '#'+SYNC_POPUP_ID+' .pm-sp-status.synced{color:var(--pm-success)}',
     '#'+SYNC_POPUP_ID+' .pm-sp-status.error{color:#f87171}',
+    '#'+SYNC_POPUP_ID+' .pm-sp-project{font-size:11px;padding:6px 12px;color:var(--pm-text-muted);word-break:break-all}',
     '#'+SYNC_POPUP_ID+' .pm-sp-actions{display:flex;gap:8px}',
     '#'+SYNC_POPUP_ID+' .pm-sp-actions button{flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:var(--pm-pressed);color:var(--pm-text)}',
     '#'+SYNC_POPUP_ID+' .pm-sp-actions button:hover{background:var(--pm-hover)}',
@@ -214,6 +215,7 @@
       '<div class="pm-sp-hint">Private repo recommended. SSH or HTTPS supported.</div>',
       '</div>',
       '<div class="pm-sp-status" id="pm-sync-status-text">Sync: not configured</div>',
+      '<div class="pm-sp-project" id="pm-sync-project-key"></div>',
       '<div class="pm-sp-actions">',
       '<button id="pm-sync-push-btn" disabled>Push</button>',
       '<button id="pm-sync-pull-btn" disabled>Pull</button>',
@@ -302,8 +304,15 @@
     try{
       var st=await a.syncStatus();
       var statusEl=el.querySelector('#pm-sync-status-text');
+      var projectEl=el.querySelector('#pm-sync-project-key');
       var pushBtn=el.querySelector('#pm-sync-push-btn');
       var pullBtn=el.querySelector('#pm-sync-pull-btn');
+      if(projectEl){
+        try{
+          var key=await a.getProjectKey();
+          projectEl.textContent=key?('Project: '+key):'Project: local (non-git, not synced)';
+        }catch(e2){projectEl.textContent='';}
+      }
       if(!st.configured){
         statusEl.textContent='Sync: not configured';
         statusEl.className='pm-sp-status';
